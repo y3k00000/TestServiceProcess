@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -13,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,6 +41,18 @@ public class MainActivity extends AppCompatActivity {
                                 Message message = new Message();
                                 message.what = 0;
                                 message.obj = new Bundle();
+                                message.replyTo = new Messenger(new Handler(new Handler.Callback() {
+                                    @Override
+                                    public boolean handleMessage(Message msg) {
+                                        Log.d(MainActivity.class.getName(), msg.toString());
+                                        if(msg.obj!=null&&msg.obj instanceof Bundle&&((Bundle) msg.obj).containsKey("message")){
+                                            String receiveMessage = ((Bundle) msg.obj).getString("message");
+                                            Log.d(MainActivity.class.getName(), "receiveMessage = "+receiveMessage);
+                                            ((TextView)findViewById(R.id.text_message)).setText(receiveMessage);
+                                        }
+                                        return true;
+                                    }
+                                }));
                                 ((Bundle)message.obj).putString("message","Boom");
                                 try {
                                     new Messenger(service).send(message);
