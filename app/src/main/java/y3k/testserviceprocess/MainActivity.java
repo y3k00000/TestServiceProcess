@@ -26,13 +26,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 final ProgressDialog bindingDialog = ProgressDialog.show(v.getContext(), "Bind", "Binding...",true,false);
+                // 開始Bind Service動作。
                 MainActivity.this.bindService(new Intent(MainActivity.this, MainService.class), new ServiceConnection() {
                     @Override
                     public void onServiceConnected(ComponentName name, final IBinder service) {
+                        // Bind完成後，關閉ProgressDialog，改變Button的行為。
                         bindingDialog.dismiss();
                         findViewById(R.id.button_bind).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
+                                // 送Message去叫Service在他的MainThread自殺。
                                 Message message = new Message();
                                 message.what = 0;
                                 message.obj = new Bundle();
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onServiceDisconnected(ComponentName name) {
+                        // ServiceDisconnect時，把button行為設回原本的。
                         Log.d(MainActivity.class.getName(), "onServiceDisconnected("+name.toString()+")");
                         findViewById(R.id.button_bind).setOnClickListener(firstOnclickListener);
                     }

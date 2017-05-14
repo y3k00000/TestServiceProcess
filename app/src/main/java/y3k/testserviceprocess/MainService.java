@@ -16,26 +16,18 @@ public class MainService extends Service {
         public boolean handleMessage(Message msg) {
             if (msg.obj instanceof Bundle && ((Bundle) msg.obj).containsKey("message")) {
                 String message = ((Bundle) msg.obj).getString("message");
-                Toast.makeText(MainService.this, message, Toast.LENGTH_SHORT).show();
-                switch (message) {
-                    case "Boom": {
-                        MainService.this.boomSelf();
+                if(message!=null) {
+                    Toast.makeText(MainService.this, message, Toast.LENGTH_SHORT).show();
+                    switch (message) {
+                        case "Boom": {
+                            MainService.this.boomSelf();
+                        }
                     }
                 }
             }
             return true;
         }
     });
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return super.onStartCommand(intent, flags, startId);
-    }
 
     void boomSelf() {
         final Handler boomHandler = new Handler(Looper.getMainLooper());
@@ -48,15 +40,10 @@ public class MainService extends Service {
                     e.printStackTrace();
                 }
                 boomHandler.post(new Runnable() {
-                    @Override
+                    @Override @SuppressWarnings("ConstantConditions")
                     public void run() {
-                        boomHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Object bomb = null;
-                                bomb.toString();
-                            }
-                        });
+                        // 只是要炸而已。
+                        ((String)null).notify();
                     }
                 });
             }
@@ -65,6 +52,8 @@ public class MainService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        // 因為兩邊不同Process，要用這個做法才能實現溝通。
+        // 部分人習慣的在Binder內加入.getService()直接跟Service物件溝通的作法不能使用，可自行實驗看看。>.^
         return new Messenger(incomingMessageHandler).getBinder();
     }
 }
