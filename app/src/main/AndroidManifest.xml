@@ -19,7 +19,7 @@
         </activity>
 
         <service
-            android:process=":testService"
+            android:process=":TestService"
             android:name=".MainService"
             android:enabled="true"/>
     </application>
