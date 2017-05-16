@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onServiceConnected(ComponentName name, final IBinder service) {
                         // Bind完成後，關閉ProgressDialog，改變Button的行為。
                         bindingDialog.dismiss();
+                        ((TextView)findViewById(R.id.text_message)).setText("Service "+name.toShortString()+" bound!!");
                         findViewById(R.id.button_bind).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
                                         return true;
                                     }
                                 }));
-                                ((Bundle)message.obj).putString("message","Boom");
+                                ((Bundle)message.obj).putSerializable("message", new MainCommand(MainCommand.ACTION.BOOM,7,true));
                                 try {
                                     new Messenger(service).send(message);
                                 } catch (RemoteException e) {

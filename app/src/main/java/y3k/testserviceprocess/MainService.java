@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -17,23 +18,23 @@ public class MainService extends Service {
         @Override
         public boolean handleMessage(Message msg) {
             if (msg.obj instanceof Bundle && ((Bundle) msg.obj).containsKey("message")) {
-                String message = ((Bundle) msg.obj).getString("message");
+                MainCommand message = (MainCommand) ((Bundle) msg.obj).getSerializable("message");
                 if (message != null) {
-                    Toast.makeText(MainService.this, message, Toast.LENGTH_SHORT).show();
-                    switch (message) {
-                        case "Boom": {
-                            if (msg.replyTo != null) {
+                    Toast.makeText(MainService.this, message.toJSONObject().toString(), Toast.LENGTH_SHORT).show();
+                    switch (message.action) {
+                        case BOOM: {
+                            if (msg.replyTo != null && message.shouldCallback) {
                                 Bundle replyBundle = new Bundle();
-                                replyBundle.putString("message", "Going to booooom!!");
+                                replyBundle.putString("message", "Going to boom!!");
                                 try {
                                     msg.replyTo.send(Message.obtain(incomingMessageHandler, 0, replyBundle));
                                 } catch (RemoteException e) {
                                     Log.d(MainService.class.getName(), "incomingMessageHandler.Callback.handleMessage()", e);
                                 }
                             } else {
-                                Log.d(MainService.class.getName(), "msg.replyTo==null");
+                                Log.d(MainService.class.getName(), "msg.replyTo==" + (msg.replyTo == null ? "null" : "!null"));
                             }
-                            MainService.this.boomSelf(msg.replyTo);
+                            MainService.this.boomSelf(msg.replyTo, message);
                         }
                     }
                 }
@@ -42,22 +43,22 @@ public class MainService extends Service {
         }
     });
 
-    void boomSelf(final Messenger replyToMessenger) {
+    void boomSelf(final Messenger replyToMessenger, @NonNull final MainCommand message) {
         final Handler boomHandler = new Handler(Looper.getMainLooper());
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i <= 5; i++) {
+                for (int i = 0; i <= message.countdown; i++) {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    if(replyToMessenger!=null) {
+                    if (replyToMessenger != null && message.shouldCallback) {
                         Message notifyMessage = new Message();
                         notifyMessage.what = 0;
                         Bundle notifyBundle = new Bundle();
-                        notifyBundle.putString("message", "Countdown " + (5 - i));
+                        notifyBundle.putString("message", "Countdown " + (message.countdown - i));
                         notifyMessage.obj = notifyBundle;
                         try {
                             replyToMessenger.send(notifyMessage);
