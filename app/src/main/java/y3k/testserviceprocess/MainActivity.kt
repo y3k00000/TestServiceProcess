@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
                     override fun onServiceConnected(name: ComponentName, service: IBinder) {
                         // Bind完成後，關閉ProgressDialog，改變Button的行為。
                         bindingDialog.dismiss()
-                        (findViewById(R.id.text_message) as TextView).text = "Service " + name.toShortString() + " bound!!"
+                        (findViewById(R.id.text_message) as TextView).text = String.format(java.util.Locale.US, "%s %s %s", "Service", name.toShortString(), "bound!!")
                         findViewById(R.id.button_bind).setOnClickListener { v ->
                             // 送Message去叫Service在他的MainThread自殺。
                             val message = Message()
@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
 
                     override fun onServiceDisconnected(name: ComponentName) {
                         // ServiceDisconnect時，把button行為設回原本的。
-                        Log.d(MainActivity::class.java.getName(), "onServiceDisconnected(" + name.toString() + ")")
+                        Log.d(MainActivity::class.java.name, "onServiceDisconnected(" + name.toString() + ")")
                         findViewById(R.id.button_bind).setOnClickListener(firstOnclickListener)
                     }
                 }, Context.BIND_AUTO_CREATE)
